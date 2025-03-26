@@ -1,0 +1,12 @@
+{
+    "window.commandCenter": 1,
+    "go.goroot": "/Users/james.cooper/sdk/go1.24.1",
+    "go.gopath": "/Users/james.cooper/go",
+    "workbench.colorTheme": "Default High Contrast",
+    "terminal.integrated.env.osx": {
+        "PATH": "${env:PATH}:${env:GOROOT}/bin:${env:GOPATH}/bin"
+    },
+    "terminal.integrated.env.linux": {
+        "PATH": "${env:PATH}:${env:GOROOT}/bin:${env:GOPATH}/bin"
+    }
+}
