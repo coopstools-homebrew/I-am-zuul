@@ -1,0 +1,13 @@
+*.key
+*.key.pub
+*.pem
+*.pub
+*.crt
+*.csr
+*.pem
+
+.env
+
+.DS_Store
+.idea
+.vscode
