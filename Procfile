@@ -1,1 +1,1 @@
-web: bin/I-am-zuul
+web: bin/src
