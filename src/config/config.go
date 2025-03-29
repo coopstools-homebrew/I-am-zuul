@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"sync"
 )
@@ -14,18 +15,18 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	privateKey, privateKeyErr := os.ReadFile("private.pem")
-	if privateKeyErr != nil {
-		return nil, privateKeyErr
+	privateKey, err := loadKeyFile("PRIVATE_KEY")
+	if err != nil {
+		return nil, err
 	}
-	publicKey, publicKeyErr := os.ReadFile("public.pem")
-	if publicKeyErr != nil {
-		return nil, publicKeyErr
+
+	publicKey, err := loadKeyFile("PUBLIC_KEY")
+	if err != nil {
+		return nil, err
 	}
 
 	var once sync.Once
 	var config *Config
-	var err error
 
 	once.Do(func() {
 		config = &Config{
@@ -38,4 +39,18 @@ func LoadConfig() (*Config, error) {
 	})
 
 	return config, err
+}
+
+func loadKeyFile(keyName string) (interface{}, error) {
+	keyPath := os.Getenv(keyName)
+	if keyPath == "" {
+		return nil, fmt.Errorf("%s environment variable not set", keyName)
+	}
+
+	key, err := os.ReadFile(keyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return key, nil
 }
