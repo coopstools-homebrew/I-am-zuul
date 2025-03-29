@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sync"
 )
@@ -15,12 +16,12 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
-	privateKey, err := loadKeyFile("PRIVATE_KEY")
+	privateKey, err := loadKeyOrFile("PRIVATE_KEY", "PRIVATE_KEY_FILE")
 	if err != nil {
 		return nil, err
 	}
 
-	publicKey, err := loadKeyFile("PUBLIC_KEY")
+	publicKey, err := loadKeyOrFile("PUBLIC_KEY", "PUBLIC_KEY_FILE")
 	if err != nil {
 		return nil, err
 	}
@@ -41,16 +42,23 @@ func LoadConfig() (*Config, error) {
 	return config, err
 }
 
-func loadKeyFile(keyName string) (string, error) {
-	keyPath := os.Getenv(keyName)
-	if keyPath == "" {
-		return "", fmt.Errorf("%s environment variable not set", keyName)
+func loadKeyOrFile(keyName, keyFileName string) (string, error) {
+	key := os.Getenv(keyName)
+	if key != "" {
+		log.Printf("Using %s from environment variable", keyName)
+		return key, nil
 	}
 
-	key, err := os.ReadFile(keyPath)
+	log.Printf("%s not found; trying %s from file", keyName, keyFileName)
+	keyPath := os.Getenv(keyFileName)
+	if keyPath == "" {
+		return "", fmt.Errorf("%s environment variable not set", keyFileName)
+	}
+
+	bytekey, err := os.ReadFile(keyPath)
 	if err != nil {
 		return "", err
 	}
 
-	return string(key), nil
+	return string(bytekey), nil
 }
