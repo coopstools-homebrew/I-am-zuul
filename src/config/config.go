@@ -8,6 +8,8 @@ import (
 )
 
 type Config struct {
+	Port string
+
 	GitHubClientID     string
 	GitHubClientSecret string
 	GitHubCallbackURL  string
@@ -36,6 +38,7 @@ func LoadConfig() (*Config, error) {
 			GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
 			PrivateKey:         privateKey,
 			PublicKey:          publicKey,
+			Port:               os.Getenv("PORT"),
 		}
 	})
 

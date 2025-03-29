@@ -72,6 +72,6 @@ func main() {
 	http.HandleFunc("GET /callback", githubCallback.HandleGitHubCallback)
 	http.HandleFunc("/data", corsMiddleware(authMiddleware(getDummyData)))
 
-	log.Println("Server starting on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server starting on :" + config.Port)
+	log.Fatal(http.ListenAndServe(":"+config.Port, nil))
 }
