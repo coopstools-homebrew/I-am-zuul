@@ -1,1 +1,1 @@
-web: go run src/main.go
+web: bin/I-am-zuul

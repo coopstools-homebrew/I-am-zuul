@@ -52,7 +52,7 @@ func loadKeyOrFile(keyName, keyFileName string) (string, error) {
 		return key, nil
 	}
 
-	log.Printf("%s not found; trying %s from file", keyName, keyFileName)
+	log.Printf("%s not found; loading from file %s", keyName, keyFileName)
 	keyPath := os.Getenv(keyFileName)
 	if keyPath == "" {
 		return "", fmt.Errorf("%s environment variable not set", keyFileName)
