@@ -7,5 +7,22 @@
       {
         "url": "heroku/go"
       }
-    ]
+    ],
+    "env": {
+        "GITHUB_CLIENT_ID": {
+            "required": true
+        },
+        "GITHUB_CLIENT_SECRET": {
+            "required": true
+        },
+        "GITHUB_REDIRECT_URI": {
+            "required": true
+        },
+        "PRIVATE_KEY": {
+            "required": true
+        },
+        "PUBLIC_KEY": {
+            "required": true
+        }
+    }
 }
