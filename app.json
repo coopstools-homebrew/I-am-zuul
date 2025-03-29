@@ -1,0 +1,11 @@
+{
+    "name": "coopstools-ghsso",
+    "description": "Service that integrates github with the coopstools platform",
+    "keywords": ["coopstools", "coopstools-homebrew", "github", "sso", "auth"],
+    "repository": "https://github.com/coopstools-homebrew/I-am-zuul",
+    "buildpacks": [
+      {
+        "url": "heroku/go"
+      }
+    ]
+}
