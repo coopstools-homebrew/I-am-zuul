@@ -2,14 +2,21 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func NewMiddleware(publicKey interface{}) func(http.HandlerFunc) http.HandlerFunc {
+func NewMiddleware(publicKeyString string) func(http.HandlerFunc) http.HandlerFunc {
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyString))
+	if err != nil {
+		log.Fatalf("Failed to parse public key: %v", err)
+	}
+
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
+			log.Printf("Request received: %s %s", r.Method, r.URL.Path)
 			// Get JWT token from cookie
 			cookie, err := r.Cookie("auth_token")
 			if err != nil {
@@ -29,6 +36,7 @@ func NewMiddleware(publicKey interface{}) func(http.HandlerFunc) http.HandlerFun
 			})
 
 			if err != nil || !token.Valid {
+				log.Printf("Invalid token: %v", err)
 				http.Error(w, "Unauthorized - Invalid token", http.StatusUnauthorized)
 				return
 			}
@@ -36,11 +44,13 @@ func NewMiddleware(publicKey interface{}) func(http.HandlerFunc) http.HandlerFun
 			// Verify path claim matches current path
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
+				log.Printf("Invalid claims: %v", err)
 				http.Error(w, "Unauthorized - Invalid claims", http.StatusUnauthorized)
 				return
 			}
 
 			if claims["path"] != r.URL.Path {
+				log.Printf("Invalid path: %v", claims["path"])
 				http.Error(w, "Unauthorized - Invalid path", http.StatusUnauthorized)
 				return
 			}

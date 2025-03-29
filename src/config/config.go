@@ -10,8 +10,8 @@ type Config struct {
 	GitHubClientID     string
 	GitHubClientSecret string
 	GitHubCallbackURL  string
-	PrivateKey         interface{}
-	PublicKey          interface{}
+	PrivateKey         string
+	PublicKey          string
 }
 
 func LoadConfig() (*Config, error) {
@@ -41,16 +41,16 @@ func LoadConfig() (*Config, error) {
 	return config, err
 }
 
-func loadKeyFile(keyName string) (interface{}, error) {
+func loadKeyFile(keyName string) (string, error) {
 	keyPath := os.Getenv(keyName)
 	if keyPath == "" {
-		return nil, fmt.Errorf("%s environment variable not set", keyName)
+		return "", fmt.Errorf("%s environment variable not set", keyName)
 	}
 
 	key, err := os.ReadFile(keyPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return key, nil
+	return string(key), nil
 }
