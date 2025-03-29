@@ -180,7 +180,6 @@ func (gh *GitHubCallback) HandleGitHubCallback(w http.ResponseWriter, r *http.Re
 		Value:    "ghsso_" + tokenString,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
-		Domain:   redirectURI[8:],
 		Path:     "/",
 		MaxAge:   7200, // 2 hours in seconds
 	}

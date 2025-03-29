@@ -20,7 +20,8 @@ func NewMiddleware(publicKeyString string) func(http.HandlerFunc) http.HandlerFu
 			// Get JWT token from cookie
 			cookie, err := r.Cookie("auth_token")
 			if err != nil {
-				http.Error(w, "Unauthorized - No token found", http.StatusUnauthorized)
+				log.Printf("No token found: %v", err)
+				http.Error(w, "Bad Request - No token found", http.StatusBadRequest)
 				return
 			}
 
