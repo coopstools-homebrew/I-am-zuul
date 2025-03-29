@@ -186,5 +186,5 @@ func (gh *GitHubCallback) HandleGitHubCallback(w http.ResponseWriter, r *http.Re
 	http.SetCookie(w, cookie)
 
 	// Redirect
-	http.Redirect(w, r, redirectURI, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, redirectURI, http.StatusSeeOther)
 }
