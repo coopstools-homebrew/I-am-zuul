@@ -66,7 +66,7 @@ func main() {
 
 	githubCallback := auth.NewGitHubCallback(config.PrivateKey)
 	authMiddleware := auth.NewMiddleware(config.PublicKey)
-	corsMiddleware := NewCORSMiddleware("https://gh.coopstools.com", "https://a28d-104-129-206-200.ngrok-free.app")
+	corsMiddleware := NewCORSMiddleware(config.AllowedOrigins...)
 
 	http.HandleFunc("GET /generate-jwt", githubCallback.HandleGenerateJWT)
 	http.HandleFunc("GET /callback", githubCallback.HandleGitHubCallback)

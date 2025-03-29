@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"sync"
 )
 
@@ -15,6 +16,8 @@ type Config struct {
 	GitHubCallbackURL  string
 	PrivateKey         string
 	PublicKey          string
+
+	AllowedOrigins []string
 }
 
 func LoadConfig() (*Config, error) {
@@ -38,6 +41,7 @@ func LoadConfig() (*Config, error) {
 			GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
 			PrivateKey:         privateKey,
 			PublicKey:          publicKey,
+			AllowedOrigins:     strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
 			Port:               os.Getenv("PORT"),
 		}
 	})
