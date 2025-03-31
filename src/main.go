@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/coopstools-homebrew/I-am-zuul/src/auth"
 	"github.com/coopstools-homebrew/I-am-zuul/src/config"
+	"github.com/coopstools-homebrew/I-am-zuul/src/persistence"
 )
 
 type DummyData struct {
@@ -30,29 +32,6 @@ func getDummyData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)
 }
-func NewCORSMiddleware(allowedOrigins ...string) func(http.HandlerFunc) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			origin := r.Header.Get("Origin")
-			for _, allowed := range allowedOrigins {
-				if origin == allowed {
-					w.Header().Set("Access-Control-Allow-Origin", origin)
-					w.Header().Set("Access-Control-Allow-Methods", "GET")
-					w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-					w.Header().Set("Access-Control-Allow-Credentials", "true")
-					break
-				}
-			}
-
-			// Handle preflight OPTIONS request
-			if r.Method == "OPTIONS" {
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		}
-	}
-}
 
 func main() {
 	if os.Getenv("GITHUB_CLIENT_ID") == "" || os.Getenv("GITHUB_CLIENT_SECRET") == "" {
@@ -61,12 +40,22 @@ func main() {
 
 	config, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	db, err := sql.Open("postgres", config.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Failed to open database: %v", err)
+	}
+	defer db.Close()
+	err = persistence.Migrate(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
 	githubCallback := auth.NewGitHubCallback(config.PrivateKey)
 	authMiddleware := auth.NewMiddleware(config.PublicKey)
-	corsMiddleware := NewCORSMiddleware(config.AllowedOrigins...)
+	corsMiddleware := auth.NewCORSMiddleware(config.AllowedOrigins...)
 
 	http.HandleFunc("GET /generate-jwt", githubCallback.HandleGenerateJWT)
 	http.HandleFunc("GET /callback", githubCallback.HandleGitHubCallback)

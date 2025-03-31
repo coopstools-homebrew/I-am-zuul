@@ -17,6 +17,11 @@ type Config struct {
 	PrivateKey         string
 	PublicKey          string
 
+	DatabaseURL      string
+	DatabaseName     string
+	DatabaseUser     string
+	DatabasePassword string
+
 	AllowedOrigins []string
 }
 
@@ -43,6 +48,10 @@ func LoadConfig() (*Config, error) {
 			PublicKey:          publicKey,
 			AllowedOrigins:     strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
 			Port:               os.Getenv("PORT"),
+			DatabaseURL:        os.Getenv("DATABASE_URL"),
+			DatabaseName:       os.Getenv("DATABASE_NAME"),
+			DatabaseUser:       os.Getenv("DATABASE_USER"),
+			DatabasePassword:   os.Getenv("DATABASE_PASSWORD"),
 		}
 	})
 
