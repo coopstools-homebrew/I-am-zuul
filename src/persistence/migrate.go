@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -108,6 +109,26 @@ func (m *Migrator) applyMigrations(currentVersion int, migrationFiles []string) 
 	if err != nil {
 		return errors.Wrap(err, "error committing transaction")
 	}
+
+	// Get all versions and log them
+	rows, err := m.db.Query(queries.GET_VERSIONS)
+	if err != nil {
+		return errors.Wrap(err, "error getting versions")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var version struct {
+			Version   int
+			CreatedAt time.Time
+		}
+		err = rows.Scan(&version.Version, &version.CreatedAt)
+		if err != nil {
+			return errors.Wrap(err, "error scanning version")
+		}
+		log.Printf("version %d, created at %s", version.Version, version.CreatedAt)
+	}
+
 	return nil
 }
 
@@ -138,6 +159,7 @@ func (m *Migrator) runSingleMigration(tx *sql.Tx, version int, migration string)
 	if err != nil {
 		return errors.Wrap(err, "error updating version")
 	}
+	log.Printf("migrated to version %d", version)
 	return nil
 }
 

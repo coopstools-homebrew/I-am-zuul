@@ -10,33 +10,24 @@ import (
 
 	"crypto/rsa"
 
+	"github.com/coopstools-homebrew/I-am-zuul/src/persistence"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// Persisted represents data that will eventually be stored in a database
-type Persisted struct {
-	AccessToken string
-	UserID      int32
-	Username    string
+// This is the interface for the UserTable
+type UserTable interface {
+	UpdateUser(user *persistence.UserInfo) error
 }
-
-var storage Persisted
 
 // GitHubCallback handles the OAuth callback flow
 type GitHubCallback struct {
 	client     *http.Client
 	privateKey *rsa.PrivateKey
-}
-
-type UserInfo struct {
-	ID        int32  `json:"id"`
-	Login     string `json:"login"`
-	AvatarURL string `json:"avatar_url"`
-	Email     string `json:"email"`
+	userTable  UserTable
 }
 
 // NewGitHubCallback creates a new GitHubCallback handler
-func NewGitHubCallback(privateKeyString string) *GitHubCallback {
+func NewGitHubCallback(privateKeyString string, userTable UserTable) *GitHubCallback {
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKeyString))
 	if err != nil {
 		log.Fatalf("Failed to parse private key: %v", err)
@@ -45,6 +36,7 @@ func NewGitHubCallback(privateKeyString string) *GitHubCallback {
 	return &GitHubCallback{
 		client:     &http.Client{},
 		privateKey: privateKey,
+		userTable:  userTable,
 	}
 }
 
@@ -79,8 +71,7 @@ func (gh *GitHubCallback) exchangeCodeForToken(code string) (string, error) {
 	return tokenResp.AccessToken, nil
 }
 
-// getUserInfo fetches the GitHub user information using the access token
-func (gh *GitHubCallback) getUserInfo(accessToken string) (*UserInfo, error) {
+func (gh *GitHubCallback) getUserInfo(accessToken string) (*persistence.UserInfo, error) {
 	userReq, err := http.NewRequest("GET", "https://api.github.com/user", nil)
 	if err != nil {
 		return nil, err
@@ -95,7 +86,7 @@ func (gh *GitHubCallback) getUserInfo(accessToken string) (*UserInfo, error) {
 	}
 	defer userResp.Body.Close()
 
-	var userInfo UserInfo
+	var userInfo persistence.UserInfo
 	if err := json.NewDecoder(userResp.Body).Decode(&userInfo); err != nil {
 		return nil, err
 	}
@@ -151,7 +142,6 @@ func (gh *GitHubCallback) HandleGitHubCallback(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Failed to get access token", http.StatusInternalServerError)
 		return
 	}
-	storage.AccessToken = accessToken
 
 	// Get user info
 	userInfo, err := gh.getUserInfo(accessToken)
@@ -160,12 +150,17 @@ func (gh *GitHubCallback) HandleGitHubCallback(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Failed to get user info", http.StatusInternalServerError)
 		return
 	}
-	storage.UserID = userInfo.ID
-	storage.Username = userInfo.Login
-	log.Printf("User onboarded: %s", userInfo.Login)
+
+	err = gh.userTable.UpdateUser(userInfo)
+	if err != nil {
+		log.Printf("Failed to update user in db: %v", err)
+		http.Error(w, "Failed to update user in db", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("User onboarded: %s", userInfo.LoginName)
 
 	// Generate JWT
-	tokenString, err := gh.generateJWT(userInfo.ID, userInfo.Login, "/data")
+	tokenString, err := gh.generateJWT(userInfo.ID, userInfo.LoginName, "/data")
 	if err != nil {
 		log.Printf("Failed to generate token: %v", err)
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)

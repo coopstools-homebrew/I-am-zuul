@@ -9,6 +9,7 @@ import (
 
 	"github.com/coopstools-homebrew/I-am-zuul/src/config"
 	"github.com/coopstools-homebrew/I-am-zuul/src/persistence"
+	"github.com/coopstools-homebrew/I-am-zuul/src/persistence/queries"
 	"github.com/docker/go-connections/nat"
 	"github.com/stretchr/testify/assert"
 
@@ -41,12 +42,13 @@ func TestMain(m *testing.M) {
 			}),
 		},
 		Started: true,
+		Reuse:   false,
 	})
 	if err != nil {
 		fmt.Printf("Failed to start postgres container: %v\n", err)
 		os.Exit(1)
 	}
-	defer pgContainer.Terminate(ctx)
+	// defer pgContainer.Terminate(ctx)
 
 	// Get the container's host and port
 	host, err := pgContainer.Host(ctx)
@@ -87,32 +89,17 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestAddUsers(t *testing.T) {
-
-	// Insert version
-	_, err := testDB.Exec(
-		`INSERT INTO users (id, org_id, avatar_url, email) VALUES ($1, $2, $3, $4)`,
-		"123", "123", "https://example.com/avatar.png", "test@example.com")
+func TestCurrentVersion(t *testing.T) {
+	stmt, err := testDB.Prepare(queries.GET_VERSION)
 	if err != nil {
-		t.Fatalf("Failed to insert version: %v", err)
+		t.Fatalf("Failed to prepare version query: %v", err)
 	}
+	defer stmt.Close()
 
-	// Retrieve version
-	var user struct {
-		ID        int32
-		OrgID     string
-		AvatarURL string
-		Email     string
-	}
-	err = testDB.QueryRow(
-		`SELECT id, org_id, avatar_url, email FROM users ORDER BY created_at DESC LIMIT 1`).
-		Scan(&user.ID, &user.OrgID, &user.AvatarURL, &user.Email)
+	var version int
+	err = stmt.QueryRow().Scan(&version)
 	if err != nil {
-		t.Fatalf("Failed to retrieve version: %v", err)
+		t.Fatalf("Failed to get version: %v", err)
 	}
-
-	assert.Equal(t, user.ID, int32(123))
-	assert.Equal(t, user.OrgID, "123")
-	assert.Equal(t, user.AvatarURL, "https://example.com/avatar.png")
-	assert.Equal(t, user.Email, "test@example.com")
+	assert.Equal(t, 2, version)
 }

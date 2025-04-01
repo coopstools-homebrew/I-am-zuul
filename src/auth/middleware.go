@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
 
+	"github.com/coopstools-homebrew/I-am-zuul/src/utils"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -55,6 +57,10 @@ func NewMiddleware(publicKeyString string) func(http.HandlerFunc) http.HandlerFu
 				http.Error(w, "Unauthorized - Invalid path", http.StatusUnauthorized)
 				return
 			}
+
+			// pull user_id out of jwt claims and add it to request context
+			userID := claims["user_id"].(int32)
+			r = r.WithContext(context.WithValue(r.Context(), utils.UserIDKey, userID))
 
 			next.ServeHTTP(w, r)
 		}
