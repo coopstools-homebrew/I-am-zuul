@@ -31,7 +31,7 @@ func NewMigrator(db *sql.DB) (*Migrator, error) {
 func (m *Migrator) getMigrations() ([]string, error) {
 	entries, err := migrations.ReadDir("migrations")
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error reading migrations directory")
 	}
 
 	// Pre-allocate the array to the number of migrations
@@ -76,8 +76,14 @@ func (m *Migrator) initAndGetVersion(initialMigration string) (int, error) {
 	}
 
 	// Get current version
+	stmt, err := m.db.Prepare(queries.GET_VERSION)
+	if err != nil {
+		return 0, errors.Wrap(err, "Failed to prepare version query")
+	}
+	defer stmt.Close()
+
 	var currentVersion int
-	err = m.db.QueryRow(queries.GET_VERSION).Scan(&currentVersion)
+	err = stmt.QueryRow().Scan(&currentVersion)
 	if err != nil {
 		return 0, errors.Wrap(err, "error getting current version")
 	}
@@ -87,7 +93,7 @@ func (m *Migrator) initAndGetVersion(initialMigration string) (int, error) {
 
 // applyMigrations applies any pending migrations in order
 func (m *Migrator) applyMigrations(currentVersion int, migrationFiles []string) error {
-	if currentVersion >= len(migrationFiles) {
+	if currentVersion >= len(migrationFiles)-1 {
 		log.Printf("db is on version %d, no migrations to apply", currentVersion)
 		return nil
 	}
@@ -97,8 +103,11 @@ func (m *Migrator) applyMigrations(currentVersion int, migrationFiles []string) 
 	if err != nil {
 		return errors.Wrap(err, "error beginning transaction")
 	}
-	for version, migration := range migrationFiles[1:] {
-		err = m.runSingleMigration(tx, version+1, migration)
+	for version, migration := range migrationFiles {
+		if version <= currentVersion {
+			continue
+		}
+		err = m.runSingleMigration(tx, version, migration)
 		if err != nil {
 			tx.Rollback()
 			return errors.Wrap(err, "error running single migration")

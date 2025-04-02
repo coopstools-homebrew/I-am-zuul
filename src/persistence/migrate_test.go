@@ -103,3 +103,11 @@ func TestCurrentVersion(t *testing.T) {
 	}
 	assert.Equal(t, 2, version)
 }
+
+// An error occured in production, wherein the same migrations were applied multiple times.
+// This test ensures that the migration code only runs migrations newer than the current version.
+func TestMultipleMigrations(t *testing.T) {
+	// As the db set ran the migrations once already, we need only call migrations once to verify they are idempotent.
+	err := persistence.Migrate(testDB)
+	assert.NoError(t, err)
+}
