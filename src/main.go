@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	_ "github.com/lib/pq"
+
 	"github.com/coopstools-homebrew/I-am-zuul/src/auth"
 	"github.com/coopstools-homebrew/I-am-zuul/src/config"
 	"github.com/coopstools-homebrew/I-am-zuul/src/github"
