@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"strings"
+
+	"github.com/coopstools-homebrew/I-am-zuul/src/config"
 
 	"github.com/google/go-github/v57/github"
 	"golang.org/x/oauth2"
@@ -76,7 +79,7 @@ var loremIpsumSentences = []string{
 	"Dolor sit amet consectetur!",
 }
 
-func (l *LoremIpsumAppender) AppendLoremIpsum(repo, branch, path string) error {
+func (l *LoremIpsumAppender) appendLoremIpsum(repo, branch, path string) error {
 	repo_parts := strings.Split(repo, "/")
 	repo_name, org_name := repo_parts[1], repo_parts[0]
 	ctx := context.Background()
@@ -133,5 +136,29 @@ func generateLoremIpsum() string {
 		paragraphs[i] = loremIpsumSentences[rand.Intn(len(loremIpsumSentences))]
 	}
 
-	return "\t" + strings.Join(paragraphs, " ")
+	content := " .   " + strings.Join(paragraphs, " ")
+	//add new line every 80 characters, but do not break words
+	lines := strings.Split(content, " ")
+	for i := 0; i < len(lines); i++ {
+		if i%80 == 0 {
+			lines[i] = "\n" + lines[i]
+		}
+	}
+	return strings.Join(lines, " ")
+}
+
+func HandleGenerateLoremIpsum(config *config.Config, l *LoremIpsumAppender) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		newParagraph := generateLoremIpsum()
+		w.Write([]byte(newParagraph))
+	}
+}
+
+func HandleAppendLoremIpsum(config *config.Config, l *LoremIpsumAppender) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		err := l.appendLoremIpsum(config.LoremIpsumRepo, config.LoremIpsumBranch, config.LoremIpsumPath)
+		if err != nil {
+			log.Printf("Failed to append lorem ipsum: %v", err)
+		}
+	}
 }

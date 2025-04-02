@@ -71,23 +71,21 @@ func main() {
 	}
 
 	userTable := persistence.NewUserTable(db)
+	loremIpsumAppender := github.NewLoremIpsumAppender(config.LoremIpsumAccessToken)
 
 	authMiddleware := auth.NewMiddleware(config.PublicKey)
 	corsMiddleware := auth.NewCORSMiddleware(config.AllowedOrigins...)
 
 	dummyDataRetriever := corsMiddleware(authMiddleware(getDummyData(userTable)))
 	githubCallback := auth.NewGitHubCallback(config.PrivateKey, userTable)
-	appender := github.NewLoremIpsumAppender(config.LoremIpsumAccessToken)
+	appendLoremIpsum := github.HandleAppendLoremIpsum(config, loremIpsumAppender)
+	generateLoremIpsum := github.HandleGenerateLoremIpsum(config, loremIpsumAppender)
 
 	http.HandleFunc("GET /generate-jwt", githubCallback.HandleGenerateJWT)
 	http.HandleFunc("GET /callback", githubCallback.HandleGitHubCallback)
 	http.HandleFunc("/data", dummyDataRetriever)
-	http.HandleFunc("/lorem-ipsum", func(w http.ResponseWriter, r *http.Request) {
-		err := appender.AppendLoremIpsum(config.LoremIpsumRepo, config.LoremIpsumBranch, config.LoremIpsumPath)
-		if err != nil {
-			log.Printf("Failed to append lorem ipsum: %v", err)
-		}
-	})
+	http.HandleFunc("POST /lorem-ipsum", appendLoremIpsum)
+	http.HandleFunc("GET /lorem-ipsum", generateLoremIpsum)
 	log.Println("Server starting on :" + config.Port)
 	log.Fatal(http.ListenAndServe(":"+config.Port, nil))
 }
