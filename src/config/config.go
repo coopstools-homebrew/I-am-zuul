@@ -11,6 +11,11 @@ import (
 type Config struct {
 	Port string
 
+	LoremIpsumAccessToken string
+	LoremIpsumRepo        string
+	LoremIpsumBranch      string
+	LoremIpsumPath        string
+
 	GitHubClientID     string
 	GitHubClientSecret string
 	GitHubCallbackURL  string
@@ -41,17 +46,21 @@ func LoadConfig() (*Config, error) {
 
 	once.Do(func() {
 		config = &Config{
-			GitHubClientID:     os.Getenv("GITHUB_CLIENT_ID"),
-			GitHubClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
-			GitHubCallbackURL:  os.Getenv("GITHUB_CALLBACK_URL"),
-			PrivateKey:         privateKey,
-			PublicKey:          publicKey,
-			AllowedOrigins:     strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
-			Port:               os.Getenv("PORT"),
-			DatabaseURL:        os.Getenv("DATABASE_URL"),
-			DatabaseName:       os.Getenv("DATABASE_NAME"),
-			DatabaseUser:       os.Getenv("DATABASE_USER"),
-			DatabasePassword:   os.Getenv("DATABASE_PASSWORD"),
+			LoremIpsumAccessToken: os.Getenv("LOREM_IPSUM_ACCESS_TOKEN"),
+			LoremIpsumRepo:        os.Getenv("LOREM_IPSUM_REPO"),
+			LoremIpsumBranch:      os.Getenv("LOREM_IPSUM_BRANCH"),
+			LoremIpsumPath:        os.Getenv("LOREM_IPSUM_PATH"),
+			GitHubClientID:        os.Getenv("GITHUB_CLIENT_ID"),
+			GitHubClientSecret:    os.Getenv("GITHUB_CLIENT_SECRET"),
+			GitHubCallbackURL:     os.Getenv("GITHUB_CALLBACK_URL"),
+			PrivateKey:            privateKey,
+			PublicKey:             publicKey,
+			AllowedOrigins:        strings.Split(os.Getenv("ALLOWED_ORIGINS"), ","),
+			Port:                  os.Getenv("PORT"),
+			DatabaseURL:           os.Getenv("DATABASE_URL"),
+			DatabaseName:          os.Getenv("DATABASE_NAME"),
+			DatabaseUser:          os.Getenv("DATABASE_USER"),
+			DatabasePassword:      os.Getenv("DATABASE_PASSWORD"),
 		}
 	})
 

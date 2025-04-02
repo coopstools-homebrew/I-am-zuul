@@ -9,6 +9,7 @@ import (
 
 	"github.com/coopstools-homebrew/I-am-zuul/src/auth"
 	"github.com/coopstools-homebrew/I-am-zuul/src/config"
+	"github.com/coopstools-homebrew/I-am-zuul/src/github"
 	"github.com/coopstools-homebrew/I-am-zuul/src/persistence"
 	"github.com/coopstools-homebrew/I-am-zuul/src/utils"
 )
@@ -74,11 +75,17 @@ func main() {
 
 	dummyDataRetriever := corsMiddleware(authMiddleware(getDummyData(userTable)))
 	githubCallback := auth.NewGitHubCallback(config.PrivateKey, userTable)
+	appender := github.NewLoremIpsumAppender(config.LoremIpsumAccessToken)
 
 	http.HandleFunc("GET /generate-jwt", githubCallback.HandleGenerateJWT)
 	http.HandleFunc("GET /callback", githubCallback.HandleGitHubCallback)
 	http.HandleFunc("/data", dummyDataRetriever)
-
+	http.HandleFunc("/lorem-ipsum", corsMiddleware(authMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		err := appender.AppendLoremIpsum(config.LoremIpsumRepo, config.LoremIpsumBranch, config.LoremIpsumPath)
+		if err != nil {
+			log.Printf("Failed to append lorem ipsum: %v", err)
+		}
+	})))
 	log.Println("Server starting on :" + config.Port)
 	log.Fatal(http.ListenAndServe(":"+config.Port, nil))
 }
