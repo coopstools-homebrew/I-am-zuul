@@ -136,14 +136,22 @@ func generateLoremIpsum() string {
 		paragraphs[i] = loremIpsumSentences[rand.Intn(len(loremIpsumSentences))]
 	}
 
-	content := " .   " + strings.Join(paragraphs, " ")
+	content := strings.Join(paragraphs, " ")
 	//add new line every 80 characters, but do not break words
-	lines := strings.Split(content, " ")
-	for i := 0; i < len(lines); i++ {
-		if i%80 == 0 {
-			lines[i] = "\n" + lines[i]
+	words := append([]string{"   "}, strings.Split(content, " ")...)
+	curLine, curLineLength := "", 0
+	lines := []string{}
+	for _, word := range words {
+		if curLineLength+len(word) > 81 {
+			lines = append(lines, curLine+"\n")
+			curLine += " " + word
+			curLineLength += len(word) + 1
+		} else {
+			curLine += word
+			curLineLength += len(word)
 		}
 	}
+	lines = append(lines, curLine)
 	return strings.Join(lines, " ")
 }
 
