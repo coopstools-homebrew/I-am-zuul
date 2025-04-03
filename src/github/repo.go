@@ -108,7 +108,7 @@ func (l *LoremIpsumAppender) appendLoremIpsum(repo, branch, path string) error {
 
 	// Add random lorem ipsum paragraph
 	newParagraph := generateLoremIpsum()
-	updatedContent := fmt.Sprintf("%s\n\n%s", content, newParagraph)
+	updatedContent := fmt.Sprintf("%s\n%s", content, newParagraph)
 
 	// Create commit
 	commitMessage := funnyCommitMessages[rand.Intn(len(funnyCommitMessages))]
@@ -138,7 +138,7 @@ func generateLoremIpsum() string {
 
 	content := strings.Join(paragraphs, " ")
 	//add new line every 80 characters, but do not break words
-	words := append([]string{"   "}, strings.Split(content, " ")...)
+	words := append([]string{"  "}, strings.Split(content, " ")...)
 	curLine, curLineLength := "", 0
 	lines := []string{}
 	for _, word := range words {

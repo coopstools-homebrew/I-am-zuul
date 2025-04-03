@@ -36,6 +36,5 @@ velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat
 quo voluptas nulla pariatur? Sed quia consequuntur magni dolores eos qui
 ratione voluptatem sequi nesciunt?
 
-
-     Nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure
+    Nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure
  reprehenderit.
