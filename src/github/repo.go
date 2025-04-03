@@ -144,15 +144,15 @@ func generateLoremIpsum() string {
 	for _, word := range words {
 		if curLineLength+len(word) > 81 {
 			lines = append(lines, curLine+"\n")
+			curLine = " " + word
+			curLineLength = len(word)
+		} else {
 			curLine += " " + word
 			curLineLength += len(word) + 1
-		} else {
-			curLine += word
-			curLineLength += len(word)
 		}
 	}
 	lines = append(lines, curLine)
-	return strings.Join(lines, " ")
+	return strings.Join(lines, "")
 }
 
 func HandleGenerateLoremIpsum(config *config.Config, l *LoremIpsumAppender) func(w http.ResponseWriter, r *http.Request) {
