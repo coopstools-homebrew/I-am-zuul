@@ -152,7 +152,7 @@ func generateLoremIpsum() string {
 		}
 	}
 	lines = append(lines, curLine)
-	return strings.Join(lines, "")
+	return strings.Join(lines, "") + "\n"
 }
 
 func HandleGenerateLoremIpsum(config *config.Config, l *LoremIpsumAppender) func(w http.ResponseWriter, r *http.Request) {
